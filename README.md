@@ -146,8 +146,9 @@ CS216-nchainai-UTXO-Simulator/
 ## Transaction Fees
 
 The simulator supports configurable transaction fees:
-- Fee percentage is set during simulator initialization
-- Total transaction cost = amount × (1 + fee percentage)
+- Fee percentage is set during simulator initialization (e.g., 0.01 for 1%)
+- Total transaction cost = amount + (amount × fee percentage), or amount × (1 + fee percentage)
+- Example: Sending 10 BTC with 1% fee costs 10.10 BTC total
 - Miners receive all transaction fees from mined blocks
 - Fees incentivize miners to include transactions in blocks
 
