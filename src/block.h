@@ -29,9 +29,7 @@ struct Block {
     }
 };
 
-const double BLOCK_REWARD = 6.25; // using same current block reward as bitcoin
-
-Block mine_block(string miner_address, Mempool& mempool, UTXOManager& utxo_manager, int block_height, int num_txs = 5) {
+Block mine_block(string miner_address, Mempool& mempool, UTXOManager& utxo_manager, int block_height, double block_reward, int num_txs = 5) {
     vector<Transaction> to_mine = mempool.get_top_transactions(num_txs);
     if(to_mine.empty()) 
     {
@@ -61,11 +59,11 @@ Block mine_block(string miner_address, Mempool& mempool, UTXOManager& utxo_manag
     }
 
     // block reward + total fees
-    double total_miner_reward = BLOCK_REWARD + total_fees;
+    double total_miner_reward = block_reward + total_fees;
     string coinbase_tx_id = "coinbase_block_" + to_string(block_height);
     utxo_manager.add_utxo(coinbase_tx_id, 0, total_miner_reward, miner_address);
 
-    cout << "Block Reward: " << fixed << setprecision(3) << BLOCK_REWARD << " BTC" << endl;
+    cout << "Block Reward: " << fixed << setprecision(3) << block_reward << " BTC" << endl;
     cout << "Total fees: " << fixed << setprecision(3) << total_fees << " BTC" << endl;
     cout << "Miner " << miner_address << " receives " << total_miner_reward << " BTC" << endl;
     cout << "Block mined successfully!" << endl;
@@ -75,5 +73,5 @@ Block mine_block(string miner_address, Mempool& mempool, UTXOManager& utxo_manag
     string timestamp(dt);
     if (!timestamp.empty() && timestamp.back() == '\n') timestamp.pop_back();
 
-    return { block_height, miner_address, to_mine, total_fees, BLOCK_REWARD, timestamp };
+    return { block_height, miner_address, to_mine, total_fees, block_reward, timestamp };
 }

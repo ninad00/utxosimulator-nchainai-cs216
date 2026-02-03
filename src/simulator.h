@@ -7,6 +7,7 @@
 using namespace std;
 
 const double epsilon = 1e-9;
+static int counter = 0;
 
 class Simulator 
 {
@@ -14,11 +15,19 @@ class Simulator
     Mempool mempool;
     vector<Block> blockchain;
     double gas_fee;
+    double block_reward;
+    int k;
 public:
-    Simulator(double gas_fee = 0.0, int mempool_maxsize = 50) 
+    Simulator(double gas_fee = 0.0, double block_reward = 12, int mempool_maxsize = 50, int k = 3) 
     {
         this->gas_fee = gas_fee;
         mempool = Mempool(mempool_maxsize);
+        this->block_reward = block_reward;
+        if(k<=0)
+        {
+            k=3;
+        }
+        this->k = k;
         utxo_manager.add_utxo("genesis", 0, 50.0, "Alice");
         utxo_manager.add_utxo("genesis", 1, 30.0, "Bob");
         utxo_manager.add_utxo("genesis", 2, 20.0, "Charlie");
@@ -156,7 +165,10 @@ public:
                 string miner;
                 cout << "Enter miner name: ";
                 cin >> miner;
-                Block new_block = mine_block(miner, mempool, utxo_manager, blockchain.size() + 1);
+                counter++;
+                Block new_block = mine_block(miner, mempool, utxo_manager, blockchain.size() + 1, block_reward);
+                if(counter%k==0)
+                block_reward/=2;
                 if (new_block.block_height != -1) {
                     blockchain.push_back(new_block);
                 }
