@@ -1,0 +1,440 @@
+=== Bitcoin Transaction Simulator ===
+Initial UTXOs (Genesis Block):
+
+--- Current UTXO Set ---
+TX ID               Index     Amount         Owner
+genesis             0         50.000         Alice
+genesis             1         30.000         Bob
+genesis             2         20.000         Charlie        
+genesis             3         10.000         David
+genesis             4         5.000          Eve
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 6
+========== Running Test Suite ==========
+
+=======================
+Running Test 1: Basic Valid Transaction
+[PASS] Transaction should be accepted by mempool
+[PASS] Transaction is present in mempool
+0.100
+0.100
+[PASS] Fee should be approx0.100000BTC
+[PASS] Change output back to Alice present and correct
+
+
+=======================
+Running Test 2: Multiple Inputs
+[PASS] Transaction with multiple inputs should be accepted
+[PASS] Transaction stored in mempool
+[PASS] Fee calculated correctly for multiple inputs
+
+
+=======================
+Running Test 3: Double-Spend in Same Transaction
+[PASS] Transaction that spends same UTXO twice should be rejected
+[PASS] Error message should mention double-spending in same transaction
+
+
+=======================
+Running Test 4: Mempool Double-Spend
+[PASS] First transaction should be accepted into mempool
+[PASS] Second transaction spending same UTXO should be rejected by mempool
+[PASS] Error should indicate UTXO already spent in mempool
+
+
+=======================
+Running Test 5: Insufficient Funds
+[PASS] Transaction with outputs greater than inputs should be rejected (Insufficient funds)
+[PASS] Error message should indicate insufficient funds
+
+
+=======================
+Running Test 6: Negative Amount
+[PASS] Transaction with negative output amount should be rejected
+[PASS] Error message should mention negative output amount
+
+
+=======================
+Running Test 7: Zero Fee Transaction
+[PASS] Zero-fee transaction (inputs == outputs) should be accepted
+[PASS] Transaction present in mempool
+[PASS] Fee should be zero for zero-fee transaction
+
+
+=======================
+Running Test 8: Race Attack Simulation
+[PASS] Low-fee transaction should be accepted when seen first
+[PASS] High-fee conflicting transaction arriving later should be rejected (first-seen rule)
+
+
+=======================
+Running Test 9: Complete Mining Flow
+Mining block...
+Selected 2 transactions from mempool.
+Block Reward: 5.000 BTC
+Total fees: 0.150 BTC
+Miner Miner1 receives 5.150 BTC
+Block mined successfully!
+[PASS] Mempool should be cleared of mined transactions
+[PASS] Coinbase UTXO for miner should be added to UTXO set
+
+
+=======================
+Running Test 10: Unconfirmed Chain
+[PASS] TX1 should be accepted into mempool (creates an unconfirmed output conceptually)
+[PASS] Bob's spend of an unmined (mempool-only) UTXO should be rejected by this simulator design     
+[PASS] Error should indicate missing input UTXO
+
+
+=======================
+Running Test 11: Mempool Transaction Limit
+Mempool transaction limit exceeded.
+Transaction tx_limit_5 has been evicted from the mempool.
+[PASS] Error should indicate mempool is full when the limit of 5 transactions is reached.
+[PASS] Mempool should accept transactions up to limit, then reject
+
+
+=======================
+Running Test 12: Block Transaction Limit
+[PASS] All transactions should be in mempool
+Mining block...
+Selected 4 transactions from mempool.
+Block Reward: 50.000 BTC
+Total fees: 0.400 BTC
+Miner Miner receives 50.400 BTC
+Block mined successfully!
+[PASS] Block should respect transaction limit
+[PASS] Mempool should keep unmined transactions
+
+=======================
+Running Test 13: Block Reward Halving
+Mining block...
+Selected 1 transactions from mempool.
+Block Reward: 50.000 BTC
+Total fees: 50.000 BTC
+Miner Eshwar receives 100.000 BTC
+Block mined successfully!
+[PASS] Block 0 should have reward 50.000000
+Mining block...
+Selected 1 transactions from mempool.
+Block Reward: 50.000 BTC
+Total fees: 50.000 BTC
+Miner Eshwar receives 100.000 BTC
+Block mined successfully!
+[PASS] Block 1 should have reward 50.000000
+Mining block...
+Selected 1 transactions from mempool.
+Block Reward: 25.000 BTC
+Total fees: 50.000 BTC
+Miner Eshwar receives 75.000 BTC
+Block mined successfully!
+[PASS] Block 2 should have reward 25.000000
+
+========================================
+Passed 13 / 13 tests.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 3
+
+--- Current Mempool ---
+Enter choice: 3
+
+--- Current Mempool ---
+--- Current Mempool ---
+Mempool is empty.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Alice
+Available balance: 50.000 BTC
+Enter recipient: Arnav
+Enter amount: 50
+Error: Insufficient funds for fee.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Alice
+Available balance: 50.000 BTC
+Enter recipient: Divyae
+Enter amount: 60
+Error: Insufficient funds.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Alice
+Available balance: 50.000 BTC
+Enter recipient: Ninad
+Enter amount: -67
+Creating transaction...
+Negative output amount
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 3
+
+--- Current Mempool ---
+Mempool is empty.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Alice
+Available balance: 50.000 BTC
+Enter recipient: Eshwar
+Enter amount: 20
+Creating transaction...
+Transaction valid! Fee: 0.200000
+Transaction ID: tx_Alice_Eshwar_334
+Transaction added to mempool.
+Mempool now has 1 transactions.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Bob
+Available balance: 30.000 BTC
+Enter recipient: Divyae
+Enter amount: 10
+Creating transaction...
+Transaction valid! Fee: 0.100000
+Transaction ID: tx_Bob_Divyae_500
+Transaction added to mempool.
+Mempool now has 2 transactions.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Charlie
+Available balance: 20.000 BTC
+Enter recipient: Arnav
+Enter amount: 5
+Creating transaction...
+Transaction valid! Fee: 0.050000
+Transaction ID: tx_Charlie_Arnav_169
+Transaction added to mempool.
+Mempool now has 3 transactions.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: David
+Available balance: 10.000 BTC
+Enter recipient: 5
+Enter amount: 5
+Creating transaction...
+Transaction valid! Fee: 0.050000
+Transaction ID: tx_David_5_724
+Transaction added to mempool.
+Mempool now has 4 transactions.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Eve
+Available balance: 5.000 BTC
+Enter recipient: Ninad
+Enter amount: 3
+Creating transaction...
+Transaction valid! Fee: 0.030000
+Transaction ID: tx_Eve_Ninad_478
+Transaction added to mempool.
+Mempool now has 5 transactions.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 3
+
+--- Current Mempool ---
+TX ID                    Inputs    Outputs   Fee       
+tx_Alice_Eshwar_334      1         2         0.200
+tx_Bob_Divyae_500        1         2         0.100     
+tx_Charlie_Arnav_169     1         2         0.050
+tx_David_5_724           1         2         0.050
+tx_Eve_Ninad_478         1         2         0.030     
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 1
+Enter sender: Alice
+Available balance: 50.000 BTC
+Enter recipient: Alice 
+Enter amount: 10
+Error: All available UTXOs are already pending in mempool.
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 3
+
+--- Current Mempool ---
+TX ID                    Inputs    Outputs   Fee       
+tx_Alice_Eshwar_334      1         2         0.200     
+tx_Bob_Divyae_500        1         2         0.100
+tx_Charlie_Arnav_169     1         2         0.050
+tx_David_5_724           1         2         0.050     
+tx_Eve_Ninad_478         1         2         0.030
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 4
+Enter miner name: Arnav
+Mining block...
+Selected 4 transactions from mempool.
+Block Reward: 6.250 BTC
+Total fees: 0.400 BTC
+Miner Arnav receives 6.650 BTC
+Block mined successfully!
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 2
+
+--- Current UTXO Set ---
+TX ID               Index     Amount         Owner
+coinbase_block_1    0         6.650          Arnav          
+genesis             4         5.000          Eve
+tx_Alice_Eshwar_334 0         20.000         Eshwar
+tx_Alice_Eshwar_334 1         29.800         Alice
+tx_Bob_Divyae_500   0         10.000         Divyae         
+tx_Bob_Divyae_500   1         19.900         Bob
+tx_Charlie_Arnav_1690         5.000          Arnav
+tx_Charlie_Arnav_1691         14.950         Charlie        
+tx_David_5_724      0         5.000          5
+tx_David_5_724      1         4.950          David
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 3
+
+--- Current Mempool ---
+TX ID                    Inputs    Outputs   Fee
+tx_Eve_Ninad_478         1         2         0.030     
+
+Main Menu:
+1. Create new transaction
+2. View UTXO set
+3. View mempool
+4. Mine block
+5. View blockchain
+6. Run test scenarios
+7. Exit
+Enter choice: 5
+
++-------------------------------------+
+| Block #1 | Miner: Arnav             |
+| Time: Tue Feb 03 20:33:56 2026      |
+| Reward: 6.250 | Fees: 0.400 BTC     |
+| TXs: 4                              |
+|   +-- tx_Alice... [1->2] Fee: 0.200 |
+|   +-- tx_Bob_D... [1->2] Fee: 0.100 |
+|   +-- tx_Charl... [1->2] Fee: 0.050 |
+|   +-- tx_David... [1->2] Fee: 0.050 |
++-------------------------------------+
+
