@@ -45,7 +45,7 @@ Note: You'll need to create a `main.cpp` file that includes `simulator.h` and ca
 #include "src/simulator.h"
 
 int main() {
-    Simulator sim(0.01, 50);  // 1% gas fee, max 50 transactions in mempool
+    Simulator sim(0.01, 6.25, 50, 2);  // 1% gas fee, 6.25 BTC initial block reward, max 50 transactions in mempool, reward halves after every 2 blocks(epoch)
     sim.run();
     return 0;
 }
