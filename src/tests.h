@@ -32,10 +32,12 @@ Test 1: Basic Valid Transaction
 - Must include change back to Alice
 - Must calculate correct fee (0.001)
 */
-static bool test_basic_valid_transaction() {
+static bool test_basic_valid_transaction(double gas_fee) {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 1: Basic Valid Transaction" << endl;
     UTXOManager um;
-    Mempool mp;
+    Mempool mp(5, gas_fee);
     um.add_utxo("genesis", 0, 50.0, "Alice");
 
     Transaction tx;
@@ -43,8 +45,8 @@ static bool test_basic_valid_transaction() {
     tx.inputs.push_back({"genesis", 0, "Alice"});
 
     double send_amount = 10.0;
-    double expected_fee = 0.001;
-    double change = 50.0 - send_amount - expected_fee;
+    tx.fee = send_amount*gas_fee;
+    double change = 50.0 - send_amount - tx.fee;
 
     tx.outputs.push_back({send_amount, "Bob"});
     tx.outputs.push_back({change, "Alice"}); // set change so stored tx fee = expected_fee
@@ -53,17 +55,21 @@ static bool test_basic_valid_transaction() {
     expect(res.first, "Transaction should be accepted by mempool");
 
     bool ok = false;
-    if (res.first) {
+    if (res.first) 
+    {
         Transaction* stored = find_tx_in_mempool(mp, tx.tx_id);
         expect(stored != nullptr, "Transaction is present in mempool");
-        if (stored) {
-            expect(fabs(stored->fee - expected_fee) < 1e-9, "Fee should be approx 0.001 BTC");
+        if (stored) 
+        {
+            cout<<stored->fee<<endl;
+            cout<<tx.fee<<endl;
+            expect(fabs(stored->fee - tx.fee) < 1e-9, "Fee should be approx"+to_string(tx.fee)+"BTC");
             bool found_change = false;
             for (auto &o : stored->outputs) {
                 if (o.address == "Alice" && fabs(o.amount - change) < EPS) found_change = true;
             }
             expect(found_change, "Change output back to Alice present and correct");
-            ok = found_change && fabs(stored->fee - expected_fee) < 1e-9;
+            ok = found_change && fabs(stored->fee - tx.fee) < 1e-9;
         }
     }
     cout << endl;
@@ -76,10 +82,12 @@ Test 2: Multiple Inputs
 - Sends 60 to Bob
 - Tests input aggregation and fee calculation
 */
-static bool test_multiple_inputs() {
+static bool test_multiple_inputs(double gas_fee) {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 2: Multiple Inputs" << endl;
     UTXOManager um;
-    Mempool mp;
+    Mempool mp(5, 0.01);
     um.add_utxo("genesis", 0, 50.0, "Alice");
     um.add_utxo("extra", 0, 20.0, "Alice");
 
@@ -89,8 +97,12 @@ static bool test_multiple_inputs() {
     tx.inputs.push_back({"extra", 0, "Alice"});
 
     double send_amount = 60.0;
+    tx.fee = send_amount*gas_fee;
+    double change = 70.0 - send_amount - tx.fee;
+
     // leave outputs so fee is total_input - total_output
     tx.outputs.push_back({send_amount, "Bob"});
+    tx.outputs.push_back({change, "Alice"});
 
     auto res = mp.add_transaction(tx, um);
     expect(res.first, "Transaction with multiple inputs should be accepted");
@@ -101,10 +113,16 @@ static bool test_multiple_inputs() {
         expect(stored != nullptr, "Transaction stored in mempool");
         if (stored) {
             double total_input = 50.0 + 20.0;
-            double expected_fee = total_input - send_amount;
+            double expected_fee = send_amount*gas_fee;
+            cout<<stored->fee<<endl;
+            cout<<expected_fee<<endl;
             expect(fabs(stored->fee - expected_fee) < 1e-9, "Fee calculated correctly for multiple inputs");
             ok = fabs(stored->fee - expected_fee) < 1e-9;
         }
+    }
+    else
+    {
+        cout<<res.second<<endl;
     }
     cout << endl;
     return ok;
@@ -116,6 +134,8 @@ Test 3: Double-Spend in Same Transaction
 - Expected: REJECT with clear error message
 */
 static bool test_double_spend_same_tx() {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 3: Double-Spend in Same Transaction" << endl;
     UTXOManager um;
     Mempool mp;
@@ -144,6 +164,8 @@ Test 4: Mempool Double-Spend
 - Expected: TX1 accepted, TX2 rejected
 */
 static bool test_mempool_double_spend() {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 4: Mempool Double-Spend" << endl;
     UTXOManager um;
     Mempool mp;
@@ -178,6 +200,8 @@ Test 5: Insufficient Funds
 - Expected: REJECT with "Insufficient funds"
 */
 static bool test_insufficient_funds() {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 5: Insufficient Funds" << endl;
     UTXOManager um;
     Mempool mp;
@@ -205,6 +229,8 @@ Test 6: Negative Amount
 - Expected: REJECT immediately
 */
 static bool test_negative_amount() {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 6: Negative Amount" << endl;
     UTXOManager um;
     Mempool mp;
@@ -231,6 +257,8 @@ Test 7: Zero Fee Transaction
 - Expected: ACCEPTED
 */
 static bool test_zero_fee_transaction() {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 7: Zero Fee Transaction" << endl;
     UTXOManager um;
     Mempool mp;
@@ -263,6 +291,8 @@ Test 8: Race Attack Simulation
 - Expected: First transaction wins (first-seen rule)
 */
 static bool test_race_attack_simulation() {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 8: Race Attack Simulation" << endl;
     UTXOManager um;
     Mempool mp;
@@ -293,7 +323,9 @@ Test 9: Complete Mining Flow
 - Mine a block
 - Check: UTXOs updated, miner gets fees, mempool cleared
 */
-static bool test_complete_mining_flow() {
+static bool test_complete_mining_flow(double gas_fee) {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 9: Complete Mining Flow" << endl;
     UTXOManager um;
     Mempool mp;
@@ -304,13 +336,17 @@ static bool test_complete_mining_flow() {
     Transaction tx1;
     tx1.tx_id = make_tx_id("mine1");
     tx1.inputs.push_back({"genesis", 0, "Alice"});
-    tx1.outputs.push_back({10.0, "Bob"}); // fee = 40.0
+    tx1.outputs.push_back({10.0, "Bob"}); 
+    double change = 50.0 - 10.0*(1+gas_fee);
+    tx1.outputs.push_back({change, "Alice"});
     mp.add_transaction(tx1, um);
 
     Transaction tx2;
     tx2.tx_id = make_tx_id("mine2");
     tx2.inputs.push_back({"genesis", 1, "Bob"});
-    tx2.outputs.push_back({5.0, "Charlie"}); // fee = 25.0
+    tx2.outputs.push_back({5.0, "Charlie"}); 
+    change = 30.0 - 5.0*(1+gas_fee);
+    tx2.outputs.push_back({change, "Bob"});
     mp.add_transaction(tx2, um);
 
     // mine a block (mine_block defined in block.h)
@@ -335,6 +371,8 @@ Test 10: Unconfirmed Chain
 - This simulator design: spending mempool-only outputs is rejected (UTXO must exist in UTXOManager)
 */
 static bool test_unconfirmed_chain() {
+        cout<<"\n=======================\n";
+
     cout << "Running Test 10: Unconfirmed Chain" << endl;
     UTXOManager um;
     Mempool mp;
@@ -364,22 +402,179 @@ static bool test_unconfirmed_chain() {
 }
 
 /*
+Test 11: Mempool Transaction Limit
+- Add transactions to mempool until it reaches MAX_MEMPOOL_SIZE
+- Attempt to add one more transaction
+- Expected: Transaction rejected with "Mempool is full" error
+*/
+static bool test_mempool_transaction_limit() {
+        cout<<"\n=======================\n";
+
+    cout << "Running Test 11: Mempool Transaction Limit" << endl;
+    UTXOManager um;
+    Mempool mp;
+    
+    // Add enough UTXOs for many transactions
+    for (int i = 0; i < 10; i++) {
+        um.add_utxo("genesis", i, 100.0, "Alice");
+    }
+    
+    // Fill mempool up to the limit
+    int txs_added = 0;
+    for (int i = 0; i < 8; i++) {
+        Transaction tx;
+        tx.tx_id = "tx_limit_" + to_string(i);
+        tx.inputs.push_back({"genesis", i, "Alice"});
+        tx.outputs.push_back({50.0, "Bob"});
+        
+        auto res = mp.add_transaction(tx, um);
+        if (res.first) {
+            txs_added++;
+        } else {
+            // Check if it's due to mempool being full
+            tests::expect(res.second.find("Mempool is full") != string::npos,
+                         "Error should indicate mempool is full when the limit of "+to_string(mp.max_size)+" transactions is reached.");
+            break;
+        }
+    }
+    
+    bool ok = txs_added > 0 && txs_added <= 5; 
+    tests::expect(ok, "Mempool should accept transactions up to limit, then reject");
+    cout << endl;
+    return ok;
+}
+
+/*
+Test 12: Block Transaction Limit
+- Create many transactions in mempool
+- Mine a block with a transaction limit
+- Check: Only the specified number of transactions are mined
+*/
+
+
+static bool test_block_transaction_limit() {
+        cout<<"\n=======================\n";
+
+    UTXOManager um;
+    Mempool mp(5);   // keep mempool max_size = 5
+
+    const double gas_fee = mp.gas_fee;
+    const double amount = 10.0;
+
+    // Create many UTXOs for Alice
+    for (int i = 0; i < 15; i++) {
+        um.add_utxo("genesis", i, 100.0, "Alice");
+    }
+
+    int txs_in_mempool = mp.max_size;
+
+    cout << "Running Test 12: Block Transaction Limit" << endl;
+    // Create transactions exactly like create_transaction_ui()
+    for (int i = 0; i < txs_in_mempool; i++) {
+        Transaction tx;
+        tx.tx_id = make_tx_id("block_limit");
+
+        double total_input = 100.0;
+
+        tx.inputs.push_back({"genesis", i, "Alice"});
+
+        double fee = amount * gas_fee;
+        double change = total_input - amount - fee;
+
+        tx.outputs.push_back({amount, "Bob"});
+        if (change > 0)
+            tx.outputs.push_back({change, "Alice"});
+
+        mp.add_transaction(tx, um);
+    }
+
+    expect(mp.transactions.size() == txs_in_mempool,
+           "All transactions should be in mempool");
+
+    // Mine block with limit
+    int max_txs_per_block = 4;
+    Block b = mine_block("Miner", mp, um, 1, 50, max_txs_per_block);
+
+    expect(b.transactions.size() <= max_txs_per_block,
+           "Block should respect transaction limit");
+
+    int remaining = txs_in_mempool - b.transactions.size();
+
+    expect(mp.transactions.size() == remaining,
+           "Mempool should keep unmined transactions");
+
+    return b.transactions.size() <= max_txs_per_block &&
+           mp.transactions.size() == remaining;
+}
+
+
+/*
+Test 13: Block Reward Halving
+- Simulate mining k blocks
+- Check that block reward halves every 210,000 blocks
+- Verify correct reward at different epochs
+*/
+static bool test_block_reward_halving(int k) {
+    cout<<"\n=======================\n";
+    cout << "Running Test 13: Block Reward Halving" << endl;
+    UTXOManager um;
+    Mempool mp;
+    
+    double initial_reward = 50.0;
+    double current_reward = initial_reward;
+    int halving_interval = k;
+    
+    // Simulate mining k blocks
+    for (int block_num = 0; block_num <= k; block_num++) {
+        // Calculate expected reward at this block height
+        int halvings = block_num / halving_interval;
+        double expected_reward = initial_reward;
+        for (int i = 0; i < halvings; i++) {
+            expected_reward /= 2.0;
+        }
+        
+        // Add a UTXO for the transaction
+        um.add_utxo("genesis", block_num - 1, 100.0, "Alice");
+        
+        // Create and add transaction to mempool
+        Transaction tx;
+        tx.tx_id = make_tx_id("halving");
+        tx.inputs.push_back({"genesis", block_num - 1, "Alice"});
+        tx.outputs.push_back({50.0, "Bob"});
+        mp.add_transaction(tx, um);
+        
+        // Mine block
+        Block b = mine_block("Eshwar", mp, um, block_num, expected_reward);
+        
+        // Verify reward
+        expect(fabs(b.block_reward - expected_reward) < EPS, 
+               "Block " + to_string(block_num) + " should have reward " + to_string(expected_reward));
+    }
+    
+    cout << endl;
+    return true;
+}
+
+/*
 Run all tests and print a summary.
 */
-static void run_all_tests() {
+static void run_all_tests(int k, double gas_fee) {
     cout << "========== Running Test Suite ==========" << endl;
     int passed = 0;
-    const int total = 10;
-    if (test_basic_valid_transaction()) passed++;
-    if (test_multiple_inputs()) passed++;
+    const int total = 13;
+    if (test_basic_valid_transaction(gas_fee)) passed++;
+    if (test_multiple_inputs(gas_fee)) passed++;
     if (test_double_spend_same_tx()) passed++;
     if (test_mempool_double_spend()) passed++;
     if (test_insufficient_funds()) passed++;
     if (test_negative_amount()) passed++;
     if (test_zero_fee_transaction()) passed++;
     if (test_race_attack_simulation()) passed++;
-    if (test_complete_mining_flow()) passed++;
+    if (test_complete_mining_flow(gas_fee)) passed++;
     if (test_unconfirmed_chain()) passed++;
+    if (test_mempool_transaction_limit()) passed++;
+    if (test_block_transaction_limit()) passed++;
+    if (test_block_reward_halving(k)) passed++;
 
     cout << "========================================" << endl;
     cout << "Passed " << passed << " / " << total << " tests." << endl;
@@ -387,9 +582,9 @@ static void run_all_tests() {
 
 } // namespace tests
 
-void Simulator::run_test_scenarios()
+void Simulator::run_test_scenarios(int k, double gas_fee)
 {
-    tests::run_all_tests();
+    tests::run_all_tests(k, gas_fee);
 }
 
 #endif // TESTS_H

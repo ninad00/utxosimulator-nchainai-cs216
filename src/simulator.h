@@ -3,6 +3,7 @@
 
 #include<bits/stdc++.h>
 #include"block.h"
+#include "tests.h"
 
 using namespace std;
 
@@ -18,10 +19,10 @@ class Simulator
     double block_reward;
     int k;
 public:
-    Simulator(double gas_fee = 0.0, double block_reward = 12, int mempool_maxsize = 50, int k = 3) 
+    Simulator(double gas_fee = 0.0, double block_reward = 12, int mempool_maxsize = 5, int k = 3) 
     {
         this->gas_fee = gas_fee;
-        mempool = Mempool(mempool_maxsize);
+        mempool = Mempool(mempool_maxsize, gas_fee);
         this->block_reward = block_reward;
         if(k<=0)
         {
@@ -35,7 +36,7 @@ public:
         utxo_manager.add_utxo("genesis", 4, 5.0, "Eve");
     }
 
-    void run_test_scenarios();
+    void run_test_scenarios(int, double);
 
     void create_transaction_ui() 
     {
@@ -184,7 +185,7 @@ public:
             else if (choice == 5)
                 display_blockchain();
             else if (choice == 6) 
-                run_test_scenarios();
+                run_test_scenarios(k, gas_fee);
             else if (choice == 7) 
                 break;
             else 
@@ -192,7 +193,5 @@ public:
         }
     }
 };
-
-#include "tests.h"
 
 #endif

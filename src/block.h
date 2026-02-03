@@ -51,7 +51,7 @@ struct Block {
     }
 };
 
-Block mine_block(string miner_address, Mempool& mempool, UTXOManager& utxo_manager, int block_height, double block_reward, int num_txs = 5) {
+Block mine_block(string miner_address, Mempool& mempool, UTXOManager& utxo_manager, int block_height, double block_reward, int num_txs = 4) {
     vector<Transaction> to_mine = mempool.get_top_transactions(num_txs);
     if(to_mine.empty()) 
     {

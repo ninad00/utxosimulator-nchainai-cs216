@@ -8,9 +8,11 @@ public:
     vector<Transaction> transactions;
     set<pair<string, int>> spent_utxos;
     int max_size;
-    Mempool(int max_size = 50)
+    double gas_fee;
+    Mempool(int max_size = 5, double gas_fee = 0.01)
     {
         this->max_size = max_size; //default maxsize
+        this->gas_fee = gas_fee;
     }
 
     //add transaction to mempool
@@ -58,9 +60,10 @@ public:
             return {false, "Insufficient funds: Input (" + to_string(total_input) + ") < Output (" + to_string(total_output) + ")"};
         }
 
-
-        //need to improve
-        tx.fee = total_input - total_output;
+        tx.fee = - total_output + total_input;
+        // tx.fee = total_output*gas_fee;
+        // if(total_input == total_output)
+        // tx.fee = 0;
 
         transactions.push_back(tx);
 
@@ -70,7 +73,18 @@ public:
         }
         if(transactions.size() > max_size)
         {
+            vector<Transaction> temp_transaction = transactions; 
             transactions = get_top_transactions(max_size);
+            cout<<"Mempool transaction limit exceeded."<<endl;
+            for(Transaction txn : temp_transaction)
+            {
+                if(find(transactions.begin(), transactions.end(), txn) == transactions.end())
+                {
+                    spent_utxos.erase({txn.inputs.front().prev_tx_id, txn.inputs.front().index});
+                    cout<<"Transaction "<<txn.tx_id<<" has been evicted from the mempool."<<endl;
+                }
+            }
+            return {false, "Mempool is full"};
         }
 
         return {true, "Transaction valid! Fee: " + to_string(tx.fee)};

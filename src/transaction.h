@@ -24,4 +24,7 @@ struct Transaction
     vector<Output> outputs;
     double fee;
 
+    bool operator==(const Transaction& other) const {
+        return tx_id == other.tx_id;
+    }
 };
