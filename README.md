@@ -2,6 +2,12 @@
 
 A comprehensive C++ educational simulator for understanding Bitcoin's UTXO (Unspent Transaction Output) model, transaction management, mempool operations, blockchain mining, dynamic fee mechanisms, and block reward halving.
 
+Team Name : nChainAI
+Team Members :
+1. Eshwar Chandra Reddy - 240003029
+2. Divyae Arya - 240001027
+3. Arnav Birari - 240041004 
+4. Ninad Kulkarni - 240002032
 
 ## Features
 
